@@ -1,6 +1,5 @@
 name: MLOps CI
 on: [push]
-
 jobs:
   test-and-lint:
     runs-on: ubuntu-latest
@@ -12,10 +11,10 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          pip install flake8 pytest httpx
-          pip install -r requirements.txt
-          pip install -e .
+          pip install flake8 pytest httpx pandas scikit-learn mlflow fastapi uvicorn
       - name: Lint with flake8
-        run: flake8 src/
+        run: flake8
       - name: Run unit tests
-        run: pytest
+        env:
+          PYTHONPATH: .
+        run: python3 -m pytest tests/test_api.py

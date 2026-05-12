@@ -17,6 +17,6 @@ jobs:
       - name: Lint with flake8
         run: flake8 src/
       - name: Run unit tests
-        run: |
-          # We'll create a simple test file next
-          python -m pytest
+        env:
+          PYTHONPATH: .
+        run: python -m pytest

@@ -12,7 +12,7 @@ def test_read_main():
     assert response.json()["status"] == "Online"
 
 
-@pytest.mark.skipif(not os.path.exists('models/model.pkl'), 
+@pytest.mark.skipif(not os.path.exists('models/model.pkl'),
                     reason="Model file not found (likely in DVC)")
 def test_predict_endpoint():
     test_data = {

@@ -19,4 +19,4 @@ jobs:
       - name: Run unit tests
         run: |
           # We'll create a simple test file next
-          pytest
+          python -m pytest

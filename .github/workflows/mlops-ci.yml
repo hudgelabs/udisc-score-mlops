@@ -17,6 +17,6 @@ jobs:
       - name: Lint with flake8
         run: flake8 src/
       - name: Run unit tests
-        env:
-          PYTHONPATH: .
-        run: python -m pytest
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          python3 -m pytest

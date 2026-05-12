@@ -1,0 +1,16 @@
+stages:
+  preprocess:
+    cmd: python src/preprocess.py data/scorecards.csv data/processed_scores.csv
+    deps:
+      - src/preprocess.py
+      - data/scorecards.csv
+    outs:
+      - data/processed_scores.csv
+  train:
+    cmd: python src/train.py data/processed_scores.csv models/model.pkl
+    deps:
+      - src/train.py
+      - data/processed_scores.csv
+    outs:
+      - models/model.pkl
+      - models/encoder.pkl

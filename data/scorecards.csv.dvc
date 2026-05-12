@@ -1,0 +1,5 @@
+outs:
+- md5: 13533ee63ba94968cee9ed0591697db7
+  size: 8296
+  hash: md5
+  path: scorecards.csv

@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 5. Copy your code and models
 COPY src/ ./src/
+COPY data/ ./data/
 COPY models/ ./models/
 
 # 6. Expose the port FastAPI uses

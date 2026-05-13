@@ -1,58 +1,56 @@
-from fastapi import FastAPI, HTTPException
-import pandas as pd
 import pickle
-import os
+import pandas as pd
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-app = FastAPI()
+app = FastAPI(title="Disc Golf Score Predictor")
 
-# Load Latest State
+# Load latest state
 reg = pd.read_csv('data/course_registry.csv')
 processed = pd.read_csv('data/processed_scores.csv')
 latest_rating = processed['PlayerRating_At_Time'].iloc[-1]
 
-# Load Model
 with open('models/model.pkl', 'rb') as f:
     model = pickle.load(f)
+
 
 class PredictRequest(BaseModel):
     CourseName: str
     LayoutName: str
-    Wind: float
-    Temp: float
     Month: int
     Duration_Min: float
+    Wind: float
+    Temp: float
+
 
 @app.post("/predict")
 def predict(data: PredictRequest):
-    course = reg[(reg.CourseName == data.CourseName) & (reg.LayoutName == data.LayoutName)]
+    course = reg[(reg.CourseName == data.CourseName) &
+                 (reg.LayoutName == data.LayoutName)]
+
     if course.empty:
-        raise HTTPException(status_code=404, detail="Course metadata missing from registry")
+        raise HTTPException(status_code=404, detail="Course not found")
 
-    # Features MUST match the order in preprocess.py
-    # ['PlayerRating_At_Time', 'ParRating', 'GlobalAvgScore', 'CoursePar', 'Month', 'Duration_Min', 'Wind', 'Temp']
-    features = [[
-        latest_rating,
-        course.ParRating.iloc[0],
-        course.GlobalAvgScore.iloc[0],
-        course.CoursePar.iloc[0],
-        data.Month,
-        data.Duration_Min,
-        data.Wind,
-        data.Temp
-    ]]
-
-    delta = model.predict(pd.DataFrame(features, columns=[
+    # Order must match training: PlayerRating, ParRating, etc.
+    feat_cols = [
         'PlayerRating_At_Time', 'ParRating', 'GlobalAvgScore',
         'CoursePar', 'Month', 'Duration_Min', 'Wind', 'Temp'
-    ]))[0]
+    ]
 
-    total = course.CoursePar.iloc[0] + delta
+    input_data = [[
+        latest_rating,
+        course['ParRating'].iloc[0],
+        course['GlobalAvgScore'].iloc[0],
+        course['CoursePar'].iloc[0],
+        data.Month, data.Duration_Min, data.Wind, data.Temp
+    ]]
+
+    df_input = pd.DataFrame(input_data, columns=feat_cols)
+    delta = model.predict(df_input)
+    total = course['CoursePar'].iloc[0] + delta
 
     return {
-        "course": data.CourseName,
-        "current_player_rating": round(latest_rating, 1),
-        "predicted_total": round(total, 1),
-        "vs_course_par": round(delta, 1),
-        "vs_official_par": round(total - course.ParRating.iloc[0] if 'ParRating' in course else 0, 1)
+        "predicted_total": round(float(total[0]), 1),
+        "predicted_vs_par": round(float(delta[0]), 1),
+        "current_player_rating": round(latest_rating, 1)
     }

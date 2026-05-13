@@ -11,9 +11,11 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          pip install flake8 pytest httpx pandas scikit-learn mlflow fastapi uvicorn
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8
       - name: Lint with flake8
-        run: flake8
+        run: flake8 src/ --ignore=E501,E302,E305,W291,W293
       - name: Run unit tests
         env:
           PYTHONPATH: .

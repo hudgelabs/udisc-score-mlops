@@ -1,0 +1,5 @@
+outs:
+- md5: 1415cfd0b9bf73c8aa615ec822654280
+  size: 163
+  hash: md5
+  path: course_registry.csv

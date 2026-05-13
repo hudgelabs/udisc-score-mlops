@@ -1,5 +1,5 @@
 outs:
-- md5: 13533ee63ba94968cee9ed0591697db7
-  size: 8296
+- md5: 18d6e971b4eb47ee7b7506beedb40c81
+  size: 4389
   hash: md5
   path: scorecards.csv

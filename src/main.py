@@ -1,45 +1,58 @@
-import os
-import pickle
-import pandas as pd
 from fastapi import FastAPI, HTTPException
+import pandas as pd
+import pickle
+import os
 from pydantic import BaseModel
 
-app = FastAPI(title="Disc Golf Score Predictor")
+app = FastAPI()
 
-model = None
-encoder = None
+# Load Latest State
+reg = pd.read_csv('data/course_registry.csv')
+processed = pd.read_csv('data/processed_scores.csv')
+latest_rating = processed['PlayerRating_At_Time'].iloc[-1]
 
-# Check if files exist to prevent CI import errors
-if os.path.exists('models/model.pkl') and os.path.exists('models/encoder.pkl'):
-    with open('models/model.pkl', 'rb') as f:
-        model = pickle.load(f)
-    with open('models/encoder.pkl', 'rb') as f:
-        encoder = pickle.load(f)
+# Load Model
+with open('models/model.pkl', 'rb') as f:
+    model = pickle.load(f)
 
-
-class RoundRequest(BaseModel):
+class PredictRequest(BaseModel):
     CourseName: str
+    LayoutName: str
+    Wind: float
+    Temp: float
     Month: int
-    HourOfDay: int
     Duration_Min: float
 
-
-@app.get("/")
-def health_check():
-    return {"status": "Online", "model_loaded": model is not None}
-
-
 @app.post("/predict")
-def predict_score(data: RoundRequest):
-    if model is None or encoder is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-    try:
-        input_df = pd.DataFrame([data.dict()])
-        input_df['CourseName'] = encoder.transform(input_df['CourseName'])
-        prediction = model.predict(input_df)
-        return {
-            "input": data.dict(),
-            "predicted_total_score": round(float(prediction[0]), 2)
-        }
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Course not recognized")
+def predict(data: PredictRequest):
+    course = reg[(reg.CourseName == data.CourseName) & (reg.LayoutName == data.LayoutName)]
+    if course.empty:
+        raise HTTPException(status_code=404, detail="Course metadata missing from registry")
+
+    # Features MUST match the order in preprocess.py
+    # ['PlayerRating_At_Time', 'ParRating', 'GlobalAvgScore', 'CoursePar', 'Month', 'Duration_Min', 'Wind', 'Temp']
+    features = [[
+        latest_rating,
+        course.ParRating.iloc[0],
+        course.GlobalAvgScore.iloc[0],
+        course.CoursePar.iloc[0],
+        data.Month,
+        data.Duration_Min,
+        data.Wind,
+        data.Temp
+    ]]
+
+    delta = model.predict(pd.DataFrame(features, columns=[
+        'PlayerRating_At_Time', 'ParRating', 'GlobalAvgScore',
+        'CoursePar', 'Month', 'Duration_Min', 'Wind', 'Temp'
+    ]))[0]
+
+    total = course.CoursePar.iloc[0] + delta
+
+    return {
+        "course": data.CourseName,
+        "current_player_rating": round(latest_rating, 1),
+        "predicted_total": round(total, 1),
+        "vs_course_par": round(delta, 1),
+        "vs_official_par": round(total - course.ParRating.iloc[0] if 'ParRating' in course else 0, 1)
+    }

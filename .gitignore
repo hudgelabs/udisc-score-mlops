@@ -1,5 +1,21 @@
-/mlflow.db
-/mlruns/
-/venv/
+# Python environment
+venv/
+/test_venv/
 __pycache__/
+*.py[cod]
+
+# MLflow tracking (Local database and artifacts)
+mlruns/
+/mlruns/
+mlflow.db
+/mlflow.db
+
+# Large Data & Models (Handled by DVC)
+data/scorecards.csv
+data/processed_scores.csv
+models/model.pkl
+models/encoder.pkl
+
+# Operating System files
 .DS_Store
+Thumbs.db

@@ -1,38 +1,39 @@
 schema: '2.0'
 stages:
   preprocess:
-    cmd: python src/preprocess.py data/scorecards.csv data/processed_scores.csv
+    cmd: python src/preprocess.py data/scorecards.csv data/course_registry.csv 
+      data/processed_scores.csv
     deps:
+    - path: data/course_registry.csv
+      hash: md5
+      md5: 1415cfd0b9bf73c8aa615ec822654280
+      size: 163
     - path: data/scorecards.csv
       hash: md5
-      md5: 13533ee63ba94968cee9ed0591697db7
-      size: 8296
+      md5: 18d6e971b4eb47ee7b7506beedb40c81
+      size: 4389
     - path: src/preprocess.py
       hash: md5
-      md5: 210468f52626947ccad89205e5a9c8d8
-      size: 1576
+      md5: 64047484f35772c35d51ff2a113a14fe
+      size: 2432
     outs:
     - path: data/processed_scores.csv
       hash: md5
-      md5: 0a0aed8198d020f30d63f726f3841433
-      size: 2751
+      md5: 9b149b8d8888748dee8274a916addf25
+      size: 1143
   train:
     cmd: python src/train.py data/processed_scores.csv models/model.pkl
     deps:
     - path: data/processed_scores.csv
       hash: md5
-      md5: 0a0aed8198d020f30d63f726f3841433
-      size: 2751
+      md5: 9b149b8d8888748dee8274a916addf25
+      size: 1143
     - path: src/train.py
       hash: md5
-      md5: 4fe06a8b6e81b15448538f5306d0876b
-      size: 1584
+      md5: 9d0d792054b43b688e8a1f437f9a9d31
+      size: 787
     outs:
-    - path: models/encoder.pkl
-      hash: md5
-      md5: c7fb573c54009d732eb1247c8a253a12
-      size: 302
     - path: models/model.pkl
       hash: md5
-      md5: 2207c3b7e21483f8912a641e033f2a3b
-      size: 335168
+      md5: abcdb32a27db366a8be2c36d926e9219
+      size: 238723

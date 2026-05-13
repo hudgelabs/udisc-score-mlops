@@ -1,9 +1,10 @@
 stages:
   preprocess:
-    cmd: python src/preprocess.py data/scorecards.csv data/processed_scores.csv
+    cmd: python src/preprocess.py data/scorecards.csv data/course_registry.csv data/processed_scores.csv
     deps:
       - src/preprocess.py
       - data/scorecards.csv
+      - data/course_registry.csv
     outs:
       - data/processed_scores.csv
   train:
@@ -13,4 +14,3 @@ stages:
       - data/processed_scores.csv
     outs:
       - models/model.pkl
-      - models/encoder.pkl
